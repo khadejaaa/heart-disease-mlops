@@ -19,7 +19,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Lint (flake8)
-        run: flake8 src tests --max-line-length=120 --statistics
+        run: flake8 src tests --statistics
 
       - name: Train model
         run: python src/models/train.py 2>&1 | tee train.log

@@ -318,7 +318,6 @@ def main():
         f"  MLflow database     : {MLFLOW_DB}"
     )
 
-
     # -----------------------------------------------------------------------
     # Load dataset
     # -----------------------------------------------------------------------
@@ -328,7 +327,6 @@ def main():
     X = df[FEATURE_COLS]
 
     y = df["target"]
-
 
     # -----------------------------------------------------------------------
     # Train / test split
@@ -346,7 +344,6 @@ def main():
         stratify=y
     )
 
-
     # -----------------------------------------------------------------------
     # Cross-validation
     # -----------------------------------------------------------------------
@@ -360,7 +357,6 @@ def main():
         random_state=42
     )
 
-
     # -----------------------------------------------------------------------
     # Variables for model selection
     # -----------------------------------------------------------------------
@@ -373,7 +369,6 @@ def main():
 
     results_summary = {}
 
-
     # -----------------------------------------------------------------------
     # Model selection
     # -----------------------------------------------------------------------
@@ -381,7 +376,6 @@ def main():
     print("\n" + "=" * 60)
     print("  MODEL SELECTION & TUNING")
     print("=" * 60)
-
 
     for name, spec in MODELS.items():
 
@@ -391,7 +385,6 @@ def main():
             "  Tuning hyperparameters via "
             "GridSearchCV (5-fold CV) ..."
         )
-
 
         # -------------------------------------------------------------------
         # MLflow run
@@ -416,7 +409,6 @@ def main():
                 refit=True
             )
 
-
             # ---------------------------------------------------------------
             # Train
             # ---------------------------------------------------------------
@@ -425,7 +417,6 @@ def main():
                 X_train,
                 y_train
             )
-
 
             # ---------------------------------------------------------------
             # Best parameters
@@ -441,7 +432,6 @@ def main():
                 for k, v in grid.best_params_.items()
             }
 
-
             print(
                 f"  Best params : {best_params}"
             )
@@ -451,7 +441,6 @@ def main():
                 f"{grid.best_score_:.4f}"
             )
 
-
             # ---------------------------------------------------------------
             # Evaluate tuned pipeline
             # ---------------------------------------------------------------
@@ -459,7 +448,6 @@ def main():
             tuned_pipeline = (
                 grid.best_estimator_
             )
-
 
             cv_summary = cross_val_evaluate(
 
@@ -472,12 +460,10 @@ def main():
                 cv
             )
 
-
             print_cv_summary(
                 name,
                 cv_summary
             )
-
 
             # ---------------------------------------------------------------
             # Log parameters
@@ -491,7 +477,6 @@ def main():
                 "model_type",
                 name
             )
-
 
             # ---------------------------------------------------------------
             # Log CV metrics
@@ -509,7 +494,6 @@ def main():
                     std
                 )
 
-
             # ---------------------------------------------------------------
             # Test-set prediction
             # ---------------------------------------------------------------
@@ -521,7 +505,6 @@ def main():
             y_prob = tuned_pipeline.predict_proba(
                 X_test
             )[:, 1]
-
 
             # ---------------------------------------------------------------
             # Test metrics
@@ -544,7 +527,6 @@ def main():
                 zero_division=0
             )
 
-
             mlflow.log_metric(
                 "test_roc_auc",
                 test_auc
@@ -559,7 +541,6 @@ def main():
                 "test_recall",
                 test_recall
             )
-
 
             # ---------------------------------------------------------------
             # Log sklearn model
@@ -581,7 +562,6 @@ def main():
                 ]
             )
 
-
             # ---------------------------------------------------------------
             # Confusion matrix
             # ---------------------------------------------------------------
@@ -591,17 +571,14 @@ def main():
                 y_pred
             )
 
-
             fig_cm, ax_cm = plt.subplots(
                 figsize=(5, 4)
             )
-
 
             ax_cm.imshow(
                 cm,
                 cmap="Blues"
             )
-
 
             for i in range(2):
 
@@ -628,7 +605,6 @@ def main():
                         fontsize=14
                     )
 
-
             ax_cm.set_xlabel(
                 "Predicted"
             )
@@ -641,7 +617,6 @@ def main():
                 f"Confusion Matrix — {name}"
             )
 
-
             ax_cm.set_xticks(
                 [0, 1]
             )
@@ -649,7 +624,6 @@ def main():
             ax_cm.set_yticks(
                 [0, 1]
             )
-
 
             ax_cm.set_xticklabels([
                 "No Disease",
@@ -661,9 +635,7 @@ def main():
                 "Disease"
             ])
 
-
             fig_cm.tight_layout()
-
 
             screenshots_dir = (
                 BASE_DIR / "screenshots"
@@ -674,28 +646,23 @@ def main():
                 exist_ok=True
             )
 
-
             cm_path = (
                 screenshots_dir
                 / f"cm_{name.replace(' ', '_').lower()}.png"
             )
-
 
             fig_cm.savefig(
                 cm_path,
                 dpi=100
             )
 
-
             mlflow.log_artifact(
                 str(cm_path)
             )
 
-
             plt.close(
                 fig_cm
             )
-
 
             # ---------------------------------------------------------------
             # ROC curve
@@ -706,11 +673,9 @@ def main():
                 y_prob
             )
 
-
             fig_roc, ax_roc = plt.subplots(
                 figsize=(5, 4)
             )
-
 
             ax_roc.plot(
 
@@ -724,14 +689,12 @@ def main():
                 )
             )
 
-
             ax_roc.plot(
                 [0, 1],
                 [0, 1],
                 "k--",
                 alpha=0.5
             )
-
 
             ax_roc.set_xlabel(
                 "False Positive Rate"
@@ -749,31 +712,25 @@ def main():
                 loc="lower right"
             )
 
-
             fig_roc.tight_layout()
-
 
             roc_path = (
                 screenshots_dir
                 / f"roc_{name.replace(' ', '_').lower()}.png"
             )
 
-
             fig_roc.savefig(
                 roc_path,
                 dpi=100
             )
 
-
             mlflow.log_artifact(
                 str(roc_path)
             )
 
-
             plt.close(
                 fig_roc
             )
-
 
             # ---------------------------------------------------------------
             # Save results
@@ -791,7 +748,6 @@ def main():
                     cv_summary["roc_auc"][0]
                 )
             }
-
 
             # ---------------------------------------------------------------
             # Select best model
@@ -812,7 +768,6 @@ def main():
                     tuned_pipeline
                 )
 
-
     # -----------------------------------------------------------------------
     # Final test-set evaluation
     # -----------------------------------------------------------------------
@@ -824,7 +779,6 @@ def main():
     )
 
     print("=" * 60)
-
 
     for name, info in results_summary.items():
 
@@ -838,7 +792,6 @@ def main():
             X_test
         )[:, 1]
 
-
         print_test_metrics(
 
             name,
@@ -849,7 +802,6 @@ def main():
 
             y_prob
         )
-
 
     # -----------------------------------------------------------------------
     # Model selection decision
@@ -863,20 +815,17 @@ def main():
 
     print("=" * 60)
 
-
     for name, info in results_summary.items():
 
         mean_auc, std_auc = (
             info["cv_summary"]["roc_auc"]
         )
 
-
         marker = (
             "  <-- SELECTED"
             if name == best_name
             else ""
         )
-
 
         print(
 
@@ -887,14 +836,12 @@ def main():
             f"{marker}"
         )
 
-
     print(
 
         f"\n  Winner : {best_name} "
         f"(highest mean CV ROC-AUC = "
         f"{best_auc:.4f})"
     )
-
 
     print(
 
@@ -903,7 +850,6 @@ def main():
         "measured by stratified 5-fold "
         "cross-validation ROC-AUC.\n"
     )
-
 
     # -----------------------------------------------------------------------
     # Save best model
@@ -914,17 +860,14 @@ def main():
         exist_ok=True
     )
 
-
     joblib.dump(
         best_pipeline,
         MODEL_PATH
     )
 
-
     print(
         f"  Model saved → {MODEL_PATH}"
     )
-
 
     # -----------------------------------------------------------------------
     # MLflow run for final selected model
@@ -942,12 +885,10 @@ def main():
             best_name
         )
 
-
         mlflow.log_metric(
             "best_cv_roc_auc",
             best_auc
         )
-
 
         mlflow.sklearn.log_model(
 
@@ -960,11 +901,9 @@ def main():
             ]
         )
 
-
         mlflow.log_artifact(
             str(MODEL_PATH)
         )
-
 
     # -----------------------------------------------------------------------
     # Finish
