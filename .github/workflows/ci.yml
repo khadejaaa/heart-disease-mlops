@@ -1,0 +1,49 @@
+﻿name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint (flake8)
+        run: flake8 src tests --max-line-length=120 --statistics
+
+      - name: Train model
+        run: python src/models/train.py 2>&1 | tee train.log
+
+      - name: Unit tests
+        run: python -m pytest tests/ -v 2>&1 | tee test.log
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-artifacts
+          path: |
+            train.log
+            test.log
+            src/models/heart_model.pkl
+            mlflow.db
+
+      - name: Build Docker image
+        run: docker build -t heart-disease-api .
+
+      - name: Docker smoke test
+        run: |
+          docker run -d -p 8000:8000 --name heart-api heart-disease-api
+          sleep 15
+          curl --fail http://localhost:8000/health
+          curl --fail -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"age":55,"sex":1,"cp":2,"trestbps":130,"chol":250,"fbs":0,"restecg":1,"thalach":150,"exang":0,"oldpeak":1.5,"slope":1,"ca":0,"thal":3}'
